@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --foreground: #26334b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: #f7f8fa;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+html[data-theme="dark"] {
+  --background: #050b19;
+  --foreground: #ededed;
+
+  body {
+    background: #050b19;
+  }
+
+  .crm-workspace {
+    color: #e2e8f0 !important;
+    background-color: #050b19 !important;
+    background-image:
+      radial-gradient(ellipse at 12% 0%, rgba(37, 99, 235, 0.13), transparent 34rem),
+      radial-gradient(ellipse at 92% 18%, rgba(8, 145, 178, 0.08), transparent 30rem) !important;
+  }
+
+  .crm-workspace [class~="bg-white"],
+  .crm-workspace [class*="bg-white/"],
+  .crm-workspace [class*="bg-[#f"]:not([class*="hover:bg"]),
+  .crm-workspace [class*="bg-[#e"]:not([class*="hover:bg"]),
+  .crm-workspace [class*="bg-[#b"]:not([class*="hover:bg"]) {
+    background-color: rgba(10, 18, 38, 0.78) !important;
+    backdrop-filter: blur(16px);
+  }
+
+  .crm-workspace [class*="bg-[#172b55]"] {
+    background-image: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  }
+
+  .crm-workspace [class*="border-[#"] {
+    border-color: rgba(148, 163, 184, 0.16) !important;
+  }
+
+  .crm-workspace [class*="text-[#"]:not([class*="hover:text"]) {
+    color: #aab8cf !important;
+  }
+
+  .crm-workspace [class*="text-[#6278cf]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#6377c8]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#566bbd]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#6679cb]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#596cb9]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#6879c6]"]:not([class*="hover:text"]) {
+    color: #7dd3fc !important;
+  }
+
+  .crm-workspace [class*="text-[#5b9275]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#5a9978]"]:not([class*="hover:text"]) {
+    color: #6ee7b7 !important;
+  }
+
+  .crm-workspace [class*="text-[#a47b3d]"]:not([class*="hover:text"]) {
+    color: #fcd34d !important;
+  }
+
+  .crm-workspace [class*="text-[#9b514b]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#ae554c]"]:not([class*="hover:text"]),
+  .crm-workspace [class*="text-[#b75a51]"]:not([class*="hover:text"]) {
+    color: #fda4af !important;
+  }
+
+  .crm-workspace [class*="hover:bg-[#"]:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgba(148, 163, 184, 0.1) !important;
+  }
+
+  .crm-workspace [class*="hover:text-[#"]:hover {
+    color: #7dd3fc !important;
+  }
+
+  .crm-workspace [class*="hover:text-[#b75a51]"]:hover {
+    color: #fda4af !important;
+  }
+
+  .crm-workspace input,
+  .crm-workspace select,
+  .crm-workspace textarea {
+    border-color: rgba(148, 163, 184, 0.22) !important;
+    background-color: rgba(2, 6, 23, 0.52) !important;
+    color: #f1f5f9 !important;
+  }
+
+  .crm-workspace input::placeholder,
+  .crm-workspace textarea::placeholder {
+    color: #64748b !important;
+  }
+
+  .crm-workspace input:focus,
+  .crm-workspace select:focus,
+  .crm-workspace textarea:focus {
+    border-color: rgba(56, 189, 248, 0.7) !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12) !important;
+  }
+
+  .crm-workspace option {
+    background-color: #0a1226;
+    color: #e2e8f0;
+  }
+
+  .crm-workspace [role="alert"] {
+    border-color: rgba(251, 113, 133, 0.28) !important;
+    background-color: rgba(159, 18, 57, 0.16) !important;
+    color: #fda4af !important;
+  }
+
+  .crm-workspace [class*="bg-[#edf5f0]"] {
+    background-color: rgba(16, 185, 129, 0.13) !important;
+  }
+
+  .crm-workspace [class*="bg-[#f8f2e7]"],
+  .crm-workspace [class*="bg-[#fbf2e8]"] {
+    background-color: rgba(245, 158, 11, 0.13) !important;
+  }
+
+  .crm-workspace [class*="bg-[#fff0ee]"],
+  .crm-workspace [class*="bg-[#fff1ef]"],
+  .crm-workspace [class*="bg-[#fff7f6]"] {
+    background-color: rgba(244, 63, 94, 0.12) !important;
+  }
+
+  .crm-workspace [class*="bg-[#eef1fb]"],
+  .crm-workspace [class*="bg-[#eff1fa]"],
+  .crm-workspace [class*="bg-[#f0f2fb]"],
+  .crm-workspace [class*="bg-[#f1f3fa]"],
+  .crm-workspace [class*="bg-[#f1f3f8]"],
+  .crm-workspace [class*="bg-[#f2f4fa]"] {
+    background-color: rgba(59, 130, 246, 0.14) !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #invoice-print,
+  #invoice-print * {
+    visibility: visible !important;
+  }
+
+  #invoice-print {
+    position: fixed !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .invoice-print-hidden {
+    display: none !important;
+  }
+}
