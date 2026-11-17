@@ -20,7 +20,7 @@ export function proxy(request: NextRequest) {
     "frame-ancestors 'none'",
     ...(isDevelopment ? [] : ["upgrade-insecure-requests"]),
   ].join("; ");
-
+ 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", policy);
