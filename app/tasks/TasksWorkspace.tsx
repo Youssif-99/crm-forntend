@@ -43,7 +43,7 @@ type Draft = {
   customerId: string; invoiceId: string; expenseId: string; categoryId: string; tagIds: string[];
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const STATUSES = ["backlog", "todo", "in_progress", "in_review", "completed", "cancelled"];
 const STATUS_TRANSITIONS: Record<string, string[]> = {
   backlog: ["todo", "in_progress", "completed", "cancelled"],
@@ -878,7 +878,7 @@ export default function TasksWorkspace({ mode = "list" }: { mode?: Mode }) {
           <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,application/pdf" disabled={attachmentBusy} className="sr-only" onChange={(event) => void uploadAttachment(event)} />
         </label>
         {attachments.length === 0 ? <p className="mt-2 text-xs text-[#8993a3]">No attachments yet.</p> : <ul className="mt-2 divide-y divide-[#f0f2f5]">{attachments.map((attachment) => <li key={attachment.id} className="flex items-center gap-3 py-2 text-xs"><span className="min-w-0 flex-1 truncate text-[#536078]">{attachment.name}</span><span className="text-[10px] text-[#8993a3]">{Math.ceil(attachment.byteSize / 1024)} KB</span><button className="text-[#6377c8]" onClick={() => void downloadAttachment(attachment)}>Download</button><button className="text-[#a35f59]" onClick={() => void deleteAttachment(attachment)}>Delete</button></li>)}</ul>}
-        <p className="mt-1 text-[10px] text-[#9aa3b0]">Private storage · PNG, JPEG, GIF, WebP, or PDF · 10 MB maximum</p>
+        <p className="mt-1 text-[10px] text-[#9aa3b0]">Private storage · PNG, JPEG, GIF, WebP, or PDF · 4 MB maximum</p>
       </section>
       <section className="mt-6">
         <h3 className="text-sm font-semibold">Reminders</h3>

@@ -13,11 +13,11 @@ npm test
 
 ## Authentication deployment notes
 
-Authentication uses the backend's HTTP-only JWT cookie; frontend code does not store bearer tokens in local storage. Deploy the API and frontend on compatible HTTPS origins, set backend `FRONTEND_ORIGIN` to the exact frontend origin, and set this app's `NEXT_PUBLIC_API_URL` to the absolute HTTPS API URL at build and runtime. The Express API validates `Origin` on every state-changing request and only allows credentialed CORS from that configured origin. Production responses enable HSTS and browser security headers.
+Authentication uses the backend's HTTP-only JWT cookie; frontend code does not store bearer tokens in local storage. Deploy the API and frontend on compatible HTTPS origins, set backend `FRONTEND_ORIGIN` to the exact frontend origin, and set `API_SERVER_URL` to the API Vercel origin. Browser requests use the same-origin `/api/*` rewrite. The Express API validates `Origin` on every state-changing request. Production responses enable HSTS and browser security headers.
 
 The app's `proxy.ts` issues a fresh nonce-based Content Security Policy for each page response, and the root layout opts into dynamic rendering. Partial prerendering and cache-components are disabled because their static shells cannot receive per-request nonces; this increases server rendering work and disables default CDN caching for HTML pages.
 
-Password recovery requires the backend's optional Resend integration. Set `RESEND_API_KEY` and a verified `EMAIL_FROM` sender in backend deployment secrets; without both, recovery requests are disabled. Verify the account email from Account Settings first; verification and password-reset links are short-lived and single-use. Registration responses intentionally do not disclose duplicate email/username conflicts and no longer create an authenticated session; users sign in after submitting the form. See the backend README for migration, rate limiting, and session revocation details.
+Email verification and password-recovery delivery are disabled under the Vercel + Neon-only production policy. Users can change their password while signed in through Account Settings. Registration responses intentionally do not disclose duplicate email/username conflicts and do not create an authenticated session; users sign in after submitting the form. See the backend README for migration, rate limiting, and session revocation details.
 
 ## Getting Started
 
@@ -56,7 +56,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Expense API contract
 
-The expense workspace and dashboard use `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000`) with `credentials: "include"`. API responses and exports are authenticated; no storage URL is exposed to the browser.
+The expense workspace and dashboard use the same-origin `/api` rewrite with `credentials: "include"`. API responses and exports are authenticated; no storage URL is exposed to the browser.
 
 - `GET /api/expenses` accepts `page`, `pageSize`, `search`, `categoryId`, `status`, `currency`, `from`, `to`, `sort`, and `direction`; it returns `{ expenses, pagination: { page, pageSize, total } }`. Supported sort values are date, amount, merchant, description, and createdAt.
 - `GET /api/expenses/:id` returns `{ expense }`; `GET /api/expenses/:id/status-history` returns `{ history: [{ fromStatus, toStatus, changedAt }] }`.
@@ -66,13 +66,13 @@ The expense workspace and dashboard use `NEXT_PUBLIC_API_URL` (fallback `http://
 - `GET /api/expenses/recurring` returns `{ templates, recurringExpenses }`. Templates expose expense fields, cadence, nextRun, endsOn, and active. Create/update uses POST/PUT `/api/expenses/recurring`; PATCH `/api/expenses/recurring/:id` accepts `{ active }`; DELETE cancels a template. Supported cadence values are daily, weekly, biweekly, monthly, quarterly, and yearly.
 - `GET /api/expenses/summary?from=&to=` returns `{ summary: [{ currency, status, count, amountCents, amount }] }`. `/api/expenses/analytics` may additionally return `byCurrency`; charts use the real summary/analytics results and selected date range. The dashboard reads this summary for paid and pending totals and the paginated pending-expense list to derive overdue totals, grouped by currency.
 - CSV download uses `GET /api/expenses/export.csv` with the active expense filters (the backend also supports `/api/expenses/export`).
-- Receipt upload uses multipart `PUT /api/expenses/:id/receipt` with form field `file` (PDF/JPEG/PNG/WebP, up to 10 MB). Download uses credentialed `GET /api/expenses/:id/receipt`, an authenticated proxy. No direct storage URL is exposed.
+- Receipt upload uses multipart `PUT /api/expenses/:id/receipt` with form field `file` (PDF/JPEG/PNG/WebP, up to 4 MB). Download uses credentialed `GET /api/expenses/:id/receipt`, an authenticated proxy. No direct storage URL is exposed.
 - Receipt deletion uses authenticated `DELETE /api/expenses/:id/receipt`.
 - Expense overview cards use summary results for total, paid, pending, average, and count grouped by currency. Overdue amount is calculated from all pending expense pages in the selected date range using `isOverdue` or dueDate, also grouped by currency; average is each currency's summarized total divided by its summarized expense count.
 
 ## Task workspace API contract
 
-The `/tasks`, `/tasks/board`, and `/tasks/calendar` workspaces use `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000`) with `credentials: "include"`. `GET /api/tasks` supports `q`, `status`, `priority`, `categoryId`, `tagId`, `customerId`, `invoiceId`, `dueFrom`, `dueTo`, `createdFrom`, `createdTo`, `overdue`, `recurring`, `completed`, `page`, `pageSize`, `sortBy`, and `sortOrder`, returning `{ tasks, pagination: { page, pageSize, total, totalPages } }`. Status values are `backlog`, `todo`, `in_progress`, `in_review`, `completed`, and `cancelled`; priority values are `low`, `medium`, `high`, and `urgent`.
+The `/tasks`, `/tasks/board`, and `/tasks/calendar` workspaces use the same-origin `/api` rewrite with `credentials: "include"`. `GET /api/tasks` supports `q`, `status`, `priority`, `categoryId`, `tagId`, `customerId`, `invoiceId`, `dueFrom`, `dueTo`, `createdFrom`, `createdTo`, `overdue`, `recurring`, `completed`, `page`, `pageSize`, `sortBy`, and `sortOrder`, returning `{ tasks, pagination: { page, pageSize, total, totalPages } }`. Status values are `backlog`, `todo`, `in_progress`, `in_review`, `completed`, and `cancelled`; priority values are `low`, `medium`, `high`, and `urgent`.
 
 Task create/update use `POST /api/tasks` and `PUT /api/tasks/:id`. The frontend sends `tagIds` containing IDs from `GET /api/tasks/tags` (never tag names), and sends selected start/due dates as ISO-8601 timestamps with timezone information. Backend-accepted task fields also include `assignedUserId`, `estimatedMinutes`, and `notes`; the task form does not currently edit those fields. Categories and tags are loaded from `/api/tasks/categories` and `/api/tasks/tags`. Related customer, invoice, and expense selectors are populated only from the existing `/api/customers`, `/api/invoices`, and `/api/expenses` endpoints.
 
@@ -80,23 +80,23 @@ The board loads `GET /api/tasks/kanban` and status changes use `PATCH /api/tasks
 
 Task subtasks use `POST /api/tasks/:id/subtasks`, `PATCH`/`DELETE /api/tasks/:id/subtasks/:subtaskId`, and `PUT /api/tasks/:id/subtasks/reorder`. Comments use `GET`/`POST /api/tasks/:id/comments`; create sends `{ body }`. Activity is included in the task detail response; the backend has no separate activity-list route. Timer controls use `/time/start`, `/time/pause`, `/time/resume`, and `/time/stop`. Manual time uses `POST /api/tasks/:id/time-entries` with timezone-bearing `startedAt` and `endedAt`; entries are listed at `GET` on the same path and edited/deleted at `PATCH`/`DELETE /api/tasks/:id/time-entries/:entryId`. Time entry records expose `durationSeconds`.
  
-The Tasks workspace includes category/tag CRUD, recurrence creation/pause/resume/cancellation, custom task reminders and unread notification acknowledgment, and private attachment upload/download/deletion. Attachment operations require the backend S3-compatible storage configuration. Recurring schedules and reminders are materialized only when `npm run tasks:generate` is run by a deployment scheduler. The calendar currently provides a monthly grid; weekly, daily, and agenda views are not implemented.
+The Tasks workspace includes category/tag CRUD, recurrence creation/pause/resume/cancellation, custom task reminders and unread notification acknowledgment, and private attachment upload/download/deletion. Attachments use the backend's private Neon Object Storage bucket. Recurring schedules and reminders are materialized by the backend's Vercel Cron schedule. The calendar currently provides a monthly grid; weekly, daily, and agenda views are not implemented.
 
 ## Customer 360 profile
 
 Open a customer by selecting their name in `/customers`. The profile tabs show database-backed overview metrics, a paginated unified timeline, linked deals, invoices/quotes, tasks, appointments, and notes/files. Financial totals are kept grouped by currency; only invoices marked paid are presented as paid totals, and quotes are not treated as revenue.
 
-The profile can edit customer details, qualify leads or convert prospects using the existing customer workflow, create a customer-linked task or deal, log a note/call/email/meeting, and upload verified private PNG/JPEG/GIF/WebP/PDF files (up to 10 MB). Customer file upload/download requires private S3-compatible storage configured for the backend. Run the additive `008_customer_360.sql` backend migration before deploying this page.
+The profile can edit customer details, qualify leads or convert prospects using the existing customer workflow, create a customer-linked task or deal, log a note/call/email/meeting, and upload verified private PNG/JPEG/GIF/WebP/PDF files (up to 4 MB). Customer files use the backend's private Neon Object Storage bucket. Run the additive `008_customer_360.sql` backend migration before deploying this page.
 
 ## Account settings
 
 The `/settings` workspace loads the authenticated profile, persistent preferences, and onboarding status from the API. It supports name updates, private avatar upload/removal, saved language/theme/currency/date/time/time-zone preferences, password changes, session revocation, and logout. New invoices, expenses, and deals use the preferred currency as their initial value; changing it never converts existing records. Theme and RTL direction apply globally, while date/time formatting helpers are available for progressive adoption by the existing screens.
 
-The persistent `/onboarding` flow resumes from backend progress on sign-in and after registration. The legacy `/authPages/userInfo-about` and `/authPages/userInfo-activity` routes redirect to it. Account APIs require the additive `009_account_saas.sql` migration and exact frontend `Origin` validation (`FRONTEND_ORIGIN`). Set `NEXT_PUBLIC_API_URL` to the backend URL and configure the backend's private S3-compatible `S3_*` variables to enable avatars. Account deletion is not available until durable external-file cleanup and retry handling exist. Existing screens are not fully translated into Arabic, and not all date/time displays yet honor saved formats/time zones.
+The persistent `/onboarding` flow resumes from backend progress on sign-in and after registration. The legacy `/authPages/userInfo-about` and `/authPages/userInfo-activity` routes redirect to it. Account APIs require the additive `009_account_saas.sql` migration and exact frontend `Origin` validation (`FRONTEND_ORIGIN`). Avatars use the backend's private Neon Object Storage bucket. Account deletion uses a durable queue and Vercel Cron cleanup. Existing screens are not fully translated into Arabic, and not all date/time displays yet honor saved formats/time zones.
 
 ## Appointment workspace API contract
 
-The appointment overview (`/appointments`), calendar (`/appointments/calendar`), and dashboard appointment panels use `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000`) and send `credentials: "include"` on API requests. This frontend expects the authenticated backend appointment API; it does not include fixture or mock appointment data.
+The appointment overview (`/appointments`), calendar (`/appointments/calendar`), and dashboard appointment panels use the same-origin `/api` rewrite and send `credentials: "include"` on API requests. This frontend expects the authenticated backend appointment API; it does not include fixture or mock appointment data.
 
 - `GET /api/appointments` accepts `search`, `status`, `typeId`, `customerId`, `from`, `to`, `locationType`, `recurring`, `completed`, `upcoming`, `page`, `pageSize`, `sortBy` (`startAt` or `createdAt`), and `sortOrder`; it returns `{ appointments, pagination: { page, pageSize, total, totalPages } }`.
 - `GET /api/appointments/calendar?from=&to=` returns the appointments/events for the requested ISO date range. Calendar display modes are month, week, day, and agenda. Selecting a date opens a prefilled create form; event selection opens appointment details.
@@ -113,7 +113,7 @@ Calendar drag-and-drop is intentionally not implemented: appointments are resche
 
 ## Sales workspace API contract
 
-The `/sales` workspace uses `NEXT_PUBLIC_API_URL` (fallback `http://localhost:4000`) with credentialed requests. Apply the backend `007_sales.sql` migration before using it. The module uses the existing single-user workspace and customer records; there is no separate Lead table or customer duplication during qualification/conversion.
+The `/sales` workspace uses the same-origin `/api` rewrite with credentialed requests. Apply the backend `007_sales.sql` migration before using it. The module uses the existing single-user workspace and customer records; there is no separate Lead table or customer duplication during qualification/conversion.
 
 - Pipelines and stages: `/api/pipelines`, `/api/pipelines/:id`, `/api/pipelines/:id/stages`, and `/api/pipelines/:id/stages/reorder`.
 - Deals: `/api/deals`, `/api/deals/:id`, `/api/deals/:id/stage`, and `/api/deals/:id/close`.

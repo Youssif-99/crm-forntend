@@ -36,7 +36,7 @@ type Draft = {
 type StageDraft = { name: string; color: string; defaultProbability: string; isWon: boolean; isLost: boolean };
 type Tab = "overview" | "pipeline" | "settings";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const priorities: Priority[] = ["low", "medium", "high", "urgent"];
 const input = "w-full rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-sm text-[#35415a] outline-none focus:border-[#7585d4]";
 const button = "rounded-lg border border-[#e5e9f0] px-3 py-2 text-xs font-medium text-[#536078] transition hover:bg-[#f5f6fa] disabled:cursor-not-allowed disabled:opacity-50";

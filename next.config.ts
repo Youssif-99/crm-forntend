@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  async rewrites() {
+    const apiServerUrl = process.env.API_SERVER_URL ??
+      (process.env.VERCEL === "1" ? undefined : "http://localhost:4000");
+    if (!apiServerUrl) throw new Error("Set API_SERVER_URL to the deployed Express API origin.");
+    return [{
+      source: "/api/:path*",
+      destination: `${apiServerUrl.replace(/\/+$/, "")}/api/:path*`,
+    }];
+  },
   async headers() {
     return [{
       source: "/:path*",

@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { formatUserDate, useUserPreferences, type UserPreferences } from "../components/PreferencesProvider";
+import { formatUserDate, normalizeUserPreferences, useUserPreferences, type UserPreferences } from "../components/PreferencesProvider";
 
-type Profile = { id: string; name: string; username: string; email: string; emailVerifiedAt: string | null; createdAt: string; lastLoginAt: string | null; avatarUrl: string | null };
+type Profile = { id: string; name: string; username: string; email: string; createdAt: string; lastLoginAt: string | null; avatarUrl: string | null };
 type Onboarding = { currentStep: string; businessName: string | null; industry: string | null; country: string | null; completedAt: string | null };
 type Section = "profile" | "preferences" | "security" | "onboarding" | "account";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const input = "w-full rounded-lg border border-[#e5e9f0] bg-white px-3 py-2.5 text-sm text-[#35415a] outline-none focus:border-[#7585d4]";
 const button = "rounded-lg border border-[#e5e9f0] px-3 py-2 text-xs font-semibold text-[#536078] transition hover:bg-[#f5f6fa] disabled:opacity-50";
 const primary = "rounded-lg bg-[#172b55] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#243c70] disabled:opacity-50";
@@ -82,8 +82,9 @@ export default function SettingsPage() {
         ]);
         if (active) {
           setProfile(account.profile);
-          setPreferences(prefs.preferences);
-          setDraft(prefs.preferences);
+          const userPreferences = normalizeUserPreferences(prefs.preferences);
+          setPreferences(userPreferences);
+          setDraft(userPreferences);
           setOnboarding(progress.onboarding);
         }
       } catch (loadError) {
@@ -125,10 +126,11 @@ export default function SettingsPage() {
     event.preventDefault(); setSaving(true); setError(""); setSuccess("");
     try {
       const result = await request<{ preferences: UserPreferences }>("/account/preferences", {
-        method: "PUT", body: JSON.stringify(preferenceDraft),
+        method: "PUT", body: JSON.stringify(normalizeUserPreferences(preferenceDraft)),
       });
-      setPreferences(result.preferences);
-      setDraft(result.preferences);
+      const userPreferences = normalizeUserPreferences(result.preferences);
+      setPreferences(userPreferences);
+      setDraft(userPreferences);
       await refreshPreferences();
       setSuccess("Preferences saved and applied.");
     } catch (saveError) { setError(saveError instanceof Error ? saveError.message : "Unable to save preferences."); }
@@ -189,16 +191,6 @@ export default function SettingsPage() {
     finally { setSaving(false); }
   }
 
-  async function requestEmailVerification() {
-    setSaving(true); setError(""); setSuccess("");
-    try {
-      const result = await request<{ message: string }>("/auth/email/verification/request", { method: "POST" });
-      setSuccess(result.message);
-    } catch (verificationError) {
-      setError(verificationError instanceof Error ? verificationError.message : "Unable to send a verification link.");
-    } finally { setSaving(false); }
-  }
-
   async function deleteAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (deletionConfirmation !== "DELETE") return;
@@ -241,8 +233,8 @@ export default function SettingsPage() {
         <nav className="h-fit rounded-2xl border border-[#e9edf2] bg-white p-2" aria-label="Settings sections">{sections.map((item) => <button key={item.id} onClick={() => { setSection(item.id); setError(""); setSuccess(""); }} aria-current={section === item.id ? "page" : undefined} className={`w-full rounded-xl px-3 py-3 text-left transition ${section === item.id ? "bg-[#eff1fa] text-[#566bbd]" : "text-[#65718a] hover:bg-[#f7f8fa]"}`}><span className="block text-xs font-semibold">{item.title}</span><span className="mt-1 block text-[10px] opacity-70">{item.description}</span></button>)}</nav>
         <div className="min-w-0">
           {section === "profile" && <Card><h2 className="text-base font-semibold text-[#35415a]">Profile</h2><p className="mt-1 text-xs text-[#8993a3]">Your account identity and profile photo.</p>
-            <form onSubmit={uploadAvatar} className="my-6 flex flex-wrap items-center gap-4"><div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#e8ebf8] text-lg font-semibold text-[#596cb9]">{profile?.avatarUrl && avatarUrl ? <Image src={avatarUrl} alt="Account avatar" width={64} height={64} unoptimized className="h-full w-full object-cover" /> : profile?.name.slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><label className="block text-xs font-semibold text-[#566278]" htmlFor="avatar">Profile avatar</label><input id="avatar" name="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" required className="mt-2 block w-full text-xs text-[#69758a] file:mr-3 file:rounded-md file:border-0 file:bg-[#eff1fa] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#566bbd]" /><p className="mt-1 text-[10px] text-[#98a1af]">PNG, JPEG, GIF, or WebP · maximum 5 MB · private file storage required</p></div><button className={button} disabled={avatarBusy}>{avatarBusy ? "Uploading..." : "Upload avatar"}</button>{profile?.avatarUrl && <button type="button" className={button} disabled={avatarBusy} onClick={() => void removeAvatar()}>Remove</button>}</form>
-            <form onSubmit={saveProfile} className="space-y-4"><Field label="Full name"><input className={input} name="name" required maxLength={100} defaultValue={profile?.name} /></Field><div className="grid gap-4 sm:grid-cols-2"><ReadOnly label="Email" value={profile?.email} /><ReadOnly label="Email verification" value={profile?.emailVerifiedAt ? "Verified" : "Not verified"} /><ReadOnly label="Username" value={`@${profile?.username ?? ""}`} /><ReadOnly label="Account created" value={dateLabel(profile?.createdAt, preferences)} /><ReadOnly label="Last sign in" value={dateLabel(profile?.lastLoginAt, preferences, true)} /></div>{!profile?.emailVerifiedAt && <p className="text-xs leading-5 text-[#69758a]">Verify your email address to enable secure password recovery. A one-time verification link will be sent to this address.</p>}<div className="flex flex-wrap justify-end gap-2">{!profile?.emailVerifiedAt && <button type="button" className={button} disabled={saving} onClick={() => void requestEmailVerification()}>{saving ? "Sending..." : "Send verification link"}</button>}<button className={primary} disabled={saving}>{saving ? "Saving..." : "Save profile"}</button></div></form>
+            <form onSubmit={uploadAvatar} className="my-6 flex flex-wrap items-center gap-4"><div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#e8ebf8] text-lg font-semibold text-[#596cb9]">{profile?.avatarUrl && avatarUrl ? <Image src={avatarUrl} alt="Account avatar" width={64} height={64} unoptimized className="h-full w-full object-cover" /> : profile?.name.slice(0, 1).toUpperCase()}</div><div className="min-w-0 flex-1"><label className="block text-xs font-semibold text-[#566278]" htmlFor="avatar">Profile avatar</label><input id="avatar" name="file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" required className="mt-2 block w-full text-xs text-[#69758a] file:mr-3 file:rounded-md file:border-0 file:bg-[#eff1fa] file:px-3 file:py-2 file:text-xs file:font-semibold file:text-[#566bbd]" /><p className="mt-1 text-[10px] text-[#98a1af]">PNG, JPEG, GIF, or WebP · maximum 4 MB · private file storage required</p></div><button className={button} disabled={avatarBusy}>{avatarBusy ? "Uploading..." : "Upload avatar"}</button>{profile?.avatarUrl && <button type="button" className={button} disabled={avatarBusy} onClick={() => void removeAvatar()}>Remove</button>}</form>
+            <form onSubmit={saveProfile} className="space-y-4"><Field label="Full name"><input className={input} name="name" required maxLength={100} defaultValue={profile?.name} /></Field><div className="grid gap-4 sm:grid-cols-2"><ReadOnly label="Email" value={profile?.email} /><ReadOnly label="Email features" value="Disabled" /><ReadOnly label="Username" value={`@${profile?.username ?? ""}`} /><ReadOnly label="Account created" value={dateLabel(profile?.createdAt, preferences)} /><ReadOnly label="Last sign in" value={dateLabel(profile?.lastLoginAt, preferences, true)} /></div><p className="text-xs leading-5 text-[#69758a]">Email verification and password recovery are disabled in this deployment.</p><div className="flex justify-end"><button className={primary} disabled={saving}>{saving ? "Saving..." : "Save profile"}</button></div></form>
           </Card>}
           {section === "preferences" && <Card><h2 className="text-base font-semibold text-[#35415a]">Application preferences</h2><p className="mt-1 text-xs text-[#8993a3]">Your preferred currency affects defaults and display only; it never converts existing records.</p>
             <form onSubmit={savePreferences} className="mt-5 space-y-4"><div className="grid gap-4 sm:grid-cols-2"><Field label="Language"><select className={input} value={preferenceDraft.language} onChange={(event) => setDraft({ ...preferenceDraft, language: event.target.value as UserPreferences["language"] })}><option value="en">English</option><option value="ar">Arabic</option></select></Field><Field label="Theme"><select className={input} value={preferenceDraft.theme} onChange={(event) => setDraft({ ...preferenceDraft, theme: event.target.value as UserPreferences["theme"] })}><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></Field><Field label="Preferred currency"><select className={input} value={preferenceDraft.currency} onChange={(event) => setDraft({ ...preferenceDraft, currency: event.target.value as UserPreferences["currency"] })}><option>EGP</option><option>USD</option><option>EUR</option></select></Field><Field label="Date format"><select className={input} value={preferenceDraft.dateFormat} onChange={(event) => setDraft({ ...preferenceDraft, dateFormat: event.target.value as UserPreferences["dateFormat"] })}><option>YYYY-MM-DD</option><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option></select></Field><Field label="Time format"><select className={input} value={preferenceDraft.timeFormat} onChange={(event) => setDraft({ ...preferenceDraft, timeFormat: event.target.value as UserPreferences["timeFormat"] })}><option value="12h">12-hour</option><option value="24h">24-hour</option></select></Field><Field label="Time zone"><select className={input} value={preferenceDraft.timezone} onChange={(event) => setDraft({ ...preferenceDraft, timezone: event.target.value })}>{[...new Set([...zones, preferenceDraft.timezone])].sort().map((zone) => <option key={zone}>{zone}</option>)}</select></Field></div><p className="text-[11px] text-[#8993a3]">Theme and Arabic right-to-left layout are applied across the application. Regional preferences are available to account-aware date and currency displays.</p><div className="flex justify-end"><button className={primary} disabled={saving}>{saving ? "Saving..." : "Save preferences"}</button></div></form>

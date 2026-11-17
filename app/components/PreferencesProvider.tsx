@@ -16,6 +16,17 @@ const defaults: UserPreferences = {
   dateFormat: "YYYY-MM-DD", timeFormat: "24h", timezone: "UTC",
 };
 
+export function normalizeUserPreferences(value: UserPreferences): UserPreferences {
+  return {
+    language: value.language,
+    theme: value.theme,
+    currency: value.currency,
+    dateFormat: value.dateFormat,
+    timeFormat: value.timeFormat,
+    timezone: value.timezone,
+  };
+}
+
 type PreferenceContextValue = {
   preferences: UserPreferences;
   ready: boolean;
@@ -25,7 +36,7 @@ type PreferenceContextValue = {
 const PreferencesContext = createContext<PreferenceContextValue>({
   preferences: defaults, ready: false, refresh: async () => {}, setPreferences: () => {},
 });
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState(defaults);
@@ -39,7 +50,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         return;
       }
       const result = await response.json() as { preferences: UserPreferences };
-      setPreferences(result.preferences);
+      setPreferences(normalizeUserPreferences(result.preferences));
     } finally {
       setReady(true);
     }

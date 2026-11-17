@@ -213,8 +213,8 @@ export default function CustomersPage() {
     async function loadWorkspace() {
       try {
         const [customerResponse, userResponse] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/customers`, { credentials: "include", signal: controller.signal }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/me`, { credentials: "include", signal: controller.signal }),
+          fetch(`/api/customers`, { credentials: "include", signal: controller.signal }),
+          fetch(`/api/auth/me`, { credentials: "include", signal: controller.signal }),
         ]);
         if (customerResponse.status === 401 || userResponse.status === 401) {
           router.replace("/authPages/sign-in");
@@ -286,7 +286,7 @@ export default function CustomersPage() {
     setFormError("");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/customers${editing ? `/${editing.id}` : ""}`,
+        `/api/customers${editing ? `/${editing.id}` : ""}`,
         {
           method: editing ? "PUT" : "POST",
           credentials: "include",
@@ -321,7 +321,7 @@ export default function CustomersPage() {
     setDeletePending(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/customers/${deleting.id}`,
+        `/api/customers/${deleting.id}`,
         { method: "DELETE", credentials: "include" },
       );
       if (response.status === 401) {
@@ -345,7 +345,7 @@ export default function CustomersPage() {
     setSigningOut(true);
     setPageError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/logout`, { method: "POST", credentials: "include" });
+      const response = await fetch(`/api/auth/logout`, { method: "POST", credentials: "include" });
       if (!response.ok) throw new Error("We couldn't sign you out. Please try again.");
       router.replace("/authPages/sign-in");
     } catch (error) {

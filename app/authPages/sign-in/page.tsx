@@ -20,14 +20,6 @@ export default function SignInPage() {
     () => new URLSearchParams(window.location.search).get("accountDeletion") === "processing",
     () => false,
   );
-  const passwordResetComplete = useSyncExternalStore(
-    (callback) => {
-      window.addEventListener("popstate", callback);
-      return () => window.removeEventListener("popstate", callback);
-    },
-    () => new URLSearchParams(window.location.search).get("passwordReset") === "complete",
-    () => false,
-  );
   const reduceMotion = useReducedMotion();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -38,7 +30,7 @@ export default function SignInPage() {
     try {
       const form = new FormData(e.currentTarget);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/login`,
+        `/api/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -184,7 +176,6 @@ export default function SignInPage() {
                 Sign in to access your workspace and manage your business.
               </p>
               {deletionProcessing && <p role="status" className="mt-4 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-sm leading-6 text-emerald-200">Your account deletion request is being processed. You have been signed out, and cleanup will retry automatically if needed.</p>}
-              {passwordResetComplete && <p role="status" className="mt-4 rounded-lg border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-sm leading-6 text-emerald-200">Your password has been reset. Sign in with your new password.</p>}
             </motion.div>
 
             {/* Form */}
@@ -211,12 +202,6 @@ export default function SignInPage() {
                     Password
                   </label>
 
-                  <Link
-                    href="/authPages/forgot-password"
-                    className="text-xs text-sky-400 transition hover:text-sky-300"
-                  >
-                    Forgot password?
-                  </Link>
                 </div>
 
                 <div className="relative">

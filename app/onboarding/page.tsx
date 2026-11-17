@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useUserPreferences, type UserPreferences } from "../components/PreferencesProvider";
+import { normalizeUserPreferences, useUserPreferences, type UserPreferences } from "../components/PreferencesProvider";
 
 type Onboarding = { currentStep: "welcome" | "business" | "preferences" | "completed"; businessName: string | null; industry: string | null; country: string | null; skippedSteps: string[]; completedAt: string | null };
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const input = "w-full rounded-lg border border-[#e5e9f0] bg-white px-3 py-2.5 text-sm text-[#35415a] outline-none focus:border-[#7585d4]";
 const button = "rounded-lg border border-[#e5e9f0] px-4 py-2.5 text-xs font-semibold text-[#536078] hover:bg-[#f5f6fa] disabled:opacity-50";
 const primary = "rounded-lg bg-[#172b55] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#243c70] disabled:opacity-50";
@@ -48,8 +48,9 @@ export default function OnboardingPage() {
         ]);
         if (active) {
           setOnboarding(progress.onboarding);
-          setDraft(prefs.preferences);
-          setPreferences(prefs.preferences);
+          const userPreferences = normalizeUserPreferences(prefs.preferences);
+          setDraft(userPreferences);
+          setPreferences(userPreferences);
         }
       } catch (loadError) {
         if ((loadError as { status?: number }).status === 401) router.replace("/authPages/sign-in");
@@ -78,9 +79,9 @@ export default function OnboardingPage() {
     setSaving(true); setError("");
     try {
       const result = await request<{ preferences: UserPreferences }>("/account/preferences", {
-        method: "PUT", body: JSON.stringify(preferencesToSave),
+        method: "PUT", body: JSON.stringify(normalizeUserPreferences(preferencesToSave)),
       });
-      setPreferences(result.preferences);
+      setPreferences(normalizeUserPreferences(result.preferences));
       const progress = await request<{ onboarding: Onboarding }>("/account/onboarding", {
         method: "PUT", body: JSON.stringify({ currentStep: "completed", skippedSteps }),
       });

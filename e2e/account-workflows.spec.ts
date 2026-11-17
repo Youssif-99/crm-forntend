@@ -252,7 +252,7 @@ test.describe("account and workspace workflows", () => {
     }
   });
 
-  test("registers, signs in, and reaches the workspace", async () => {
+  test("registers, signs in automatically, and reaches onboarding", async () => {
     test.setTimeout(90_000);
     const account = {
       name: `Signup ${randomUUID().slice(0, 8)}`,
@@ -269,14 +269,10 @@ test.describe("account and workspace workflows", () => {
     await activePage.getByLabel("Password", { exact: true }).fill(account.password);
     await activePage.getByRole("checkbox").check();
     await activePage.getByRole("button", { name: "Create Account" }).click();
-    await expect(activePage.getByRole("status")).toContainText("continue to sign in");
-
-    await activePage.getByRole("link", { name: "Continue to sign in" }).click();
-    await activePage.getByLabel("Email address").fill(account.email);
-    await activePage.getByLabel("Password", { exact: true }).fill(account.password);
-    await activePage.getByRole("button", { name: "Sign In" }).click();
-    await expect(activePage).toHaveURL(/\/(?:onboarding|dashboard)/);
-    await activePage.goto("/dashboard");
+    await expect(activePage).toHaveURL(/\/onboarding$/);
+    await expect(activePage.getByRole("heading", { name: "Welcome to your workspace" })).toBeVisible();
+    await activePage.getByRole("button", { name: "Skip setup" }).click();
+    await expect(activePage).toHaveURL(/\/dashboard$/);
     await expect(activePage.getByRole("heading").first()).toBeVisible();
   });
 

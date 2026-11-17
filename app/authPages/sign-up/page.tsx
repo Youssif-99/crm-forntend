@@ -3,10 +3,12 @@
 import { useState, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
 import ThreeBackground from "@/app/components/ThreeBackground";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export default function SignUpPage() {
     try {
       const form = new FormData(e.currentTarget);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/register`,
+        `/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,6 +43,38 @@ export default function SignUpPage() {
         return;
       }
 
+      let loginResponse: Response;
+      try {
+        loginResponse = await fetch(
+          `/api/auth/login`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              email: form.get("email"),
+              password: form.get("password"),
+            }),
+          },
+        );
+      } catch {
+        setError("Your registration was received, but we couldn't sign you in automatically. Please sign in to continue.");
+        setSubmitted(true);
+        return;
+      }
+
+      if (loginResponse.ok) {
+        const loginResult = await loginResponse.json() as { onboardingRequired?: boolean };
+        window.dispatchEvent(new Event("businessos:account-authenticated"));
+        router.replace(loginResult.onboardingRequired ? "/onboarding" : "/dashboard");
+        return;
+      }
+
+      if (loginResponse.status === 401) {
+        setError("We couldn't sign you in. An account with this email may already exist; try signing in or resetting your password.");
+      } else {
+        setError("Your registration was received, but automatic sign-in failed. Please sign in to continue.");
+      }
       setSubmitted(true);
     } catch {
       setError("We couldn't connect to the server. Please try again.");
@@ -173,7 +207,7 @@ export default function SignUpPage() {
             {/* Form */}
             {submitted ? (
               <div role="status" className="space-y-4 rounded-xl border border-sky-400/20 bg-sky-500/10 p-4 text-sm leading-6 text-sky-100">
-                <p>If an account can be created with those details, you can now continue to sign in. If you already have an account, sign in or use password recovery.</p>
+                <p>{error || "We couldn't sign you in automatically. Try signing in or resetting your password."}</p>
                 <Link
                   href="/authPages/sign-in"
                   className="inline-flex font-semibold text-sky-300 transition hover:text-sky-200"

@@ -69,7 +69,7 @@ function BrandMark({ small = false }: { small?: boolean }) {
 
 function MetricCard({ label, value = "—", icon, tint, detail }: { label: string; value?: string; icon: IconName; tint: string; detail: string }) {
   return (
-    <article className="rounded-2xl border border-[#e9edf2] bg-white p-5 shadow-[0_1px_2px_rgba(27,39,62,0.02)]">
+    <article className="workspace-metric-card rounded-2xl border border-[#e9edf2] bg-white p-5 shadow-[0_1px_2px_rgba(27,39,62,0.02)]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[13px] font-medium text-[#788397]">{label}</p>
         <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${tint}`}>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+    const apiUrl = "";
     const now = new Date();
     const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(now); dayEnd.setHours(23, 59, 59, 999);
@@ -184,7 +184,7 @@ export default function DashboardPage() {
       setLoadError("");
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/me`,
+          `/api/auth/me`,
           { credentials: "include", signal: controller.signal },
         );
         if (response.status === 401) {
@@ -200,7 +200,7 @@ export default function DashboardPage() {
           throw new Error("Your account details couldn't be loaded. Please sign in again.");
         }
         const customersResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/customers`,
+          `/api/customers`,
           { credentials: "include", signal: controller.signal },
         );
         if (customersResponse.status === 401) {
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           throw new Error("Your customer summary couldn't be loaded. Please try again.");
         }
         const invoiceResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/invoices/summary`,
+          `/api/invoices/summary`,
           { credentials: "include", signal: controller.signal },
         );
         if (invoiceResponse.status === 401) {
@@ -231,7 +231,7 @@ export default function DashboardPage() {
         }
         try {
           setTaskError("");
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+          const apiUrl = "";
           const statuses = ["backlog", "todo", "in_progress", "in_review"];
           const taskResults = await Promise.all(statuses.map(async (status) => {
             const params = new URLSearchParams({ status, page: "1", pageSize: "100", sortBy: "dueDate", sortOrder: "asc" });
@@ -290,7 +290,7 @@ export default function DashboardPage() {
           setTaskError(error instanceof Error ? error.message : "Task information is unavailable.");
         }
         setExpenseError("");
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+        const apiUrl = "";
         try {
           const expenseSummaryResponse = await fetch(`${apiUrl}/api/expenses/summary`, {
             credentials: "include",
@@ -362,7 +362,7 @@ export default function DashboardPage() {
     setLogoutError("");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/logout`,
+        `/api/auth/logout`,
         { method: "POST", credentials: "include" },
       );
       if (!response.ok) {
@@ -507,16 +507,16 @@ export default function DashboardPage() {
                 {logoutError}
               </p>
             )}
-            <section className="mb-7 flex flex-col justify-between gap-5 rounded-2xl border border-[#e8ebf4] bg-white p-5 sm:flex-row sm:items-center sm:p-7">
+            <section className="workspace-hero mb-7 flex flex-col justify-between gap-5 rounded-2xl border border-[#e8ebf4] bg-white p-5 sm:flex-row sm:items-center sm:p-7">
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#929bab]">YOUR BUSINESS AT A GLANCE</p>
                 <h1 className="mt-2 text-[25px] font-semibold tracking-[-0.055em] text-[#202d45] sm:text-[30px]">
-                  Good morning, {firstName} <span aria-hidden="true">✦</span>
+                  Good morning, {firstName} <span className="text-sky-500" aria-hidden="true">✦</span>
                 </h1>
                 <p className="mt-1.5 text-[13px] text-[#8490a2]">Your business overview will come to life as you add your records.</p>
               </div>
-              <span className="inline-flex w-fit items-center gap-2 rounded-lg border border-[#e8ebf0] bg-[#fbfcfd] px-3 py-2 text-[11px] font-medium text-[#778397]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#7bb497]" />
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/70 px-3 py-2 text-[11px] font-semibold text-[#527c69] shadow-sm backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.14)]" />
                 Account connected
               </span>
             </section>

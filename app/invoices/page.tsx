@@ -336,9 +336,9 @@ export default function InvoicesPage() {
     async function loadWorkspace() {
       try {
         const [invoiceResponse, customerResponse, userResponse] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/invoices`, { credentials: "include", signal: controller.signal }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/customers`, { credentials: "include", signal: controller.signal }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/me`, { credentials: "include", signal: controller.signal }),
+          fetch(`/api/invoices`, { credentials: "include", signal: controller.signal }),
+          fetch(`/api/customers`, { credentials: "include", signal: controller.signal }),
+          fetch(`/api/auth/me`, { credentials: "include", signal: controller.signal }),
         ]);
         if ([invoiceResponse, customerResponse, userResponse].some((response) => response.status === 401)) {
           router.replace("/authPages/sign-in");
@@ -425,7 +425,7 @@ export default function InvoicesPage() {
     };
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/invoices${editing ? `/${editing.id}` : ""}`,
+        `/api/invoices${editing ? `/${editing.id}` : ""}`,
         { method: editing ? "PUT" : "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
       );
       if (response.status === 401) {
@@ -453,7 +453,7 @@ export default function InvoicesPage() {
     setStatusPending(true);
     setStatusError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/invoices/${invoice.id}/status`, {
+      const response = await fetch(`/api/invoices/${invoice.id}/status`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -482,7 +482,7 @@ export default function InvoicesPage() {
     setDeletePending(true);
     setDeleteError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/invoices/${deleting.id}`, { method: "DELETE", credentials: "include" });
+      const response = await fetch(`/api/invoices/${deleting.id}`, { method: "DELETE", credentials: "include" });
       if (response.status === 401) {
         router.replace("/authPages/sign-in");
         return;
@@ -505,7 +505,7 @@ export default function InvoicesPage() {
     setSigningOut(true);
     setLoadError("");
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/auth/logout`, { method: "POST", credentials: "include" });
+      const response = await fetch(`/api/auth/logout`, { method: "POST", credentials: "include" });
       if (!response.ok) throw new Error("We couldn't sign you out. Please try again.");
       router.replace("/authPages/sign-in");
     } catch (error) {

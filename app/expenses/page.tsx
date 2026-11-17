@@ -78,7 +78,7 @@ type ExpenseDraft = {
 };
 type SortKey = "date" | "createdAt" | "description" | "merchant" | "amount";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const inputClass = "h-10 w-full rounded-lg border border-[#e5e9f0] bg-white px-3 text-xs text-[#435069] outline-none transition placeholder:text-[#a0a8b5] focus:border-[#bbc5e8] focus:ring-2 focus:ring-[#6478ce]/10";
 const paymentMethods = [
   ["cash", "Cash"],
@@ -592,7 +592,7 @@ export default function ExpensesPage() {
     setReceiptUploading(true);
     setReceiptError("");
     try {
-      if (file.size > 10 * 1024 * 1024) throw new Error("Receipt files must be 10 MB or smaller.");
+      if (file.size > 4 * 1024 * 1024) throw new Error("Receipt files must be 4 MB or smaller.");
       if (!["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(file.type)) {
         throw new Error("Choose a PDF, JPEG, PNG, or WebP receipt.");
       }
@@ -798,7 +798,7 @@ export default function ExpensesPage() {
                     if (file) void uploadReceipt(selected, file);
                   }} />
                 </label>
-                <span className="text-[10px] text-[#929bab]">PDF, JPEG, PNG, or WebP · up to 10 MB</span>
+                <span className="text-[10px] text-[#929bab]">PDF, JPEG, PNG, or WebP · up to 4 MB</span>
               </div>
               {receiptError && <p role="alert" className="mt-2 text-[10px] text-[#9b514b]">{receiptError}</p>}
             </section>

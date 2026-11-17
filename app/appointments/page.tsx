@@ -38,7 +38,7 @@ type AvailabilityDraft = {
   minimumNoticeMinutes: number; maximumAdvanceDays: number;
 };
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = "";
 const PAGE_SIZE = 20;
 const input = "w-full rounded-lg border border-[#e5e9f0] bg-white px-3 py-2 text-sm text-[#35415a] outline-none focus:border-[#7585d4]";
 const button = "rounded-lg border border-[#e5e9f0] px-3 py-2 text-xs font-medium text-[#536078] transition hover:bg-[#f5f6fa] disabled:opacity-50";
@@ -619,7 +619,7 @@ export function AppointmentsWorkspace({ calendarDefault = false }: { calendarDef
     return draft;
   };
 
-  return <main className="min-h-screen bg-[#f7f8fb] text-[#26344f]">
+  return <main className="crm-workspace min-h-screen bg-[#f7f8fb] text-[#26344f]">
     <aside className="fixed inset-y-0 left-0 hidden w-60 border-r border-[#e9ecf1] bg-white px-4 py-6 lg:block">
       <Link href="/dashboard" className="mb-9 flex items-center gap-2.5 px-2"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#172b55] text-sm font-bold text-white">B</span><span className="text-base font-semibold">Business<span className="text-[#6278cf]">OS</span></span></Link>
       <nav className="space-y-1" aria-label="Workspace navigation">{[["Dashboard", "/dashboard"], ["Customers", "/customers"], ["Sales", "/sales"], ["Invoices", "/invoices"], ["Expenses", "/expenses"], ["Tasks", "/tasks"], ["Appointments", "/appointments"], ["Settings", "/settings"]].map(([name, href]) => <Link key={name} href={href} aria-current={name === "Appointments" ? "page" : undefined} className={`block rounded-lg px-3 py-2.5 text-[13px] font-medium ${name === "Appointments" ? "bg-[#eff1fa] text-[#566bbd]" : "text-[#737f92] hover:bg-[#f7f8fa]"}`}>{name}</Link>)}</nav>

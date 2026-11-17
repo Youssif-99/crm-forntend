@@ -18,6 +18,320 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+.crm-workspace {
+  background-color: #f5f7fb;
+  background-image:
+    radial-gradient(ellipse at 2% 0%, rgba(99, 102, 241, 0.075), transparent 34rem),
+    radial-gradient(ellipse at 100% 12%, rgba(14, 165, 233, 0.065), transparent 30rem);
+  background-attachment: fixed;
+}
+
+.crm-workspace aside[class*="border-r"][class*="bg-white"] {
+  background-color: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+}
+
+.crm-workspace header[class*="bg-white"] {
+  backdrop-filter: blur(18px);
+}
+
+.crm-workspace button:not(:disabled) {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.crm-workspace button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.crm-workspace button:not(:disabled):active {
+  transform: translateY(0) scale(0.98);
+}
+
+.crm-workspace aside nav a {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.crm-workspace aside nav a:hover {
+  transform: translateX(3px);
+}
+
+.crm-workspace section[class*="rounded-2xl"][class*="border"][class*="bg-white"],
+.crm-workspace article[class*="rounded-2xl"][class*="border"][class*="bg-white"] {
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 8px 26px rgba(30, 50, 90, 0.045), 0 1px 3px rgba(30, 50, 90, 0.035);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.crm-workspace article[class*="rounded-2xl"][class*="border"][class*="bg-white"]:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.28);
+  box-shadow: 0 14px 32px rgba(30, 50, 90, 0.09), 0 2px 6px rgba(30, 50, 90, 0.04);
+}
+
+.crm-workspace nav a[aria-current="page"] {
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.12);
+}
+
+.crm-workspace button:focus-visible,
+.crm-workspace a:focus-visible {
+  outline: 3px solid rgba(56, 189, 248, 0.48);
+  outline-offset: 3px;
+}
+
+.crm-workspace table tbody tr:nth-child(-n + 8) {
+  transition: background-color 150ms ease;
+}
+
+.crm-workspace table tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.035);
+}
+
+.workspace-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 86% 16%, rgba(56, 189, 248, 0.19), transparent 32%),
+    radial-gradient(ellipse at 72% 112%, rgba(99, 102, 241, 0.2), transparent 44%),
+    linear-gradient(118deg, #ffffff 4%, #f6f8ff 55%, #f1f8ff 100%);
+  box-shadow: 0 18px 48px rgba(37, 57, 103, 0.08), 0 2px 6px rgba(37, 57, 103, 0.04);
+}
+
+.workspace-hero::after {
+  position: absolute;
+  z-index: -1;
+  top: -90px;
+  right: -54px;
+  width: 290px;
+  height: 290px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px rgba(99, 102, 241, 0.035), 0 0 0 58px rgba(56, 189, 248, 0.035);
+  content: "";
+  pointer-events: none;
+}
+
+.workspace-metric-card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.workspace-metric-card::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, #38bdf8, #6366f1);
+  content: "";
+  opacity: 0.72;
+}
+
+.workspace-metric-card::after {
+  position: absolute;
+  z-index: -1;
+  inset: -20% auto -20% -65%;
+  width: 48%;
+  background: linear-gradient(105deg, transparent, rgba(99, 102, 241, 0.055), transparent);
+  content: "";
+  pointer-events: none;
+  transform: skewX(-18deg);
+  transition: left 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.workspace-metric-card:hover::after {
+  left: 125%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .crm-workspace main > div,
+  .crm-workspace > div > main > div {
+    animation: workspace-enter 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .crm-workspace aside[class*="border-r"] {
+    animation: workspace-sidebar-in 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .crm-workspace section[class*="rounded-2xl"][class*="border"],
+  .crm-workspace article[class*="rounded-2xl"][class*="border"] {
+    animation: workspace-card-in 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .crm-workspace main > div > main > div > section:nth-child(2),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(2),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(6) {
+    animation-delay: 70ms;
+  }
+
+  .crm-workspace main > div > main > div > section:nth-child(3),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(3),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(7) {
+    animation-delay: 130ms;
+  }
+
+  .crm-workspace main > div > main > div > section:nth-child(4),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(4),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(8) {
+    animation-delay: 190ms;
+  }
+
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(5),
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(9) {
+    animation-delay: 250ms;
+  }
+
+  .crm-workspace main > div > main > div > section:nth-child(2) > article:nth-child(10) {
+    animation-delay: 310ms;
+  }
+
+  .crm-workspace table tbody tr {
+    animation: workspace-row-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .crm-workspace table tbody tr:nth-child(2) {
+    animation-delay: 35ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(3) {
+    animation-delay: 70ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(4) {
+    animation-delay: 105ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(5) {
+    animation-delay: 140ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(6) {
+    animation-delay: 175ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(7) {
+    animation-delay: 210ms;
+  }
+
+  .crm-workspace table tbody tr:nth-child(8) {
+    animation-delay: 245ms;
+  }
+
+  .workspace-hero::after {
+    animation: workspace-orbit 22s ease-in-out infinite alternate;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .crm-workspace main section[class*="rounded-2xl"][class*="border"],
+    .crm-workspace main article[class*="rounded-2xl"][class*="border"] {
+      animation-name: workspace-scroll-in;
+      animation-timing-function: linear;
+      animation-timeline: view();
+      animation-range: entry 0% entry 32%;
+    }
+  }
+}
+
+@keyframes workspace-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes workspace-sidebar-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes workspace-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes workspace-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes workspace-scroll-in {
+  from {
+    opacity: 0.3;
+    transform: translateY(24px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes workspace-orbit {
+  from {
+    transform: rotate(-8deg) scale(0.96);
+  }
+
+  to {
+    transform: rotate(8deg) scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-workspace *,
+  .crm-workspace *::before,
+  .crm-workspace *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+
+  .crm-workspace button:not(:disabled):hover,
+  .crm-workspace aside nav a:hover,
+  .crm-workspace article[class*="rounded-2xl"][class*="border"]:hover {
+    transform: none !important;
+  }
+
+  .workspace-metric-card:hover::after {
+    left: -65%;
+  }
+}
+
 html[data-theme="dark"] {
   --background: #050b19;
   --foreground: #ededed;
@@ -145,6 +459,32 @@ html[data-theme="dark"] {
   .crm-workspace [class*="bg-[#f1f3f8]"],
   .crm-workspace [class*="bg-[#f2f4fa]"] {
     background-color: rgba(59, 130, 246, 0.14) !important;
+  }
+
+  .crm-workspace aside[class*="border-r"][class*="bg-white"] {
+    background-color: rgba(7, 14, 31, 0.9) !important;
+  }
+
+  .crm-workspace section[class*="rounded-2xl"][class*="border"][class*="bg-white"],
+  .crm-workspace article[class*="rounded-2xl"][class*="border"][class*="bg-white"] {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  }
+
+  .crm-workspace article[class*="rounded-2xl"][class*="border"][class*="bg-white"]:hover {
+    border-color: rgba(56, 189, 248, 0.28);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  }
+
+  .workspace-hero {
+    background:
+      radial-gradient(ellipse at 86% 16%, rgba(56, 189, 248, 0.2), transparent 32%),
+      radial-gradient(ellipse at 72% 112%, rgba(99, 102, 241, 0.22), transparent 44%),
+      linear-gradient(118deg, rgba(10, 18, 38, 0.96), rgba(11, 24, 49, 0.92));
+  }
+
+  .workspace-hero::after {
+    border-color: rgba(125, 211, 252, 0.16);
+    box-shadow: 0 0 0 28px rgba(99, 102, 241, 0.045), 0 0 0 58px rgba(56, 189, 248, 0.04);
   }
 }
 
