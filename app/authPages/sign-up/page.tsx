@@ -36,10 +36,14 @@ export default function SignUpPage() {
           }),
         },
       );
-      const result = await response.json();
+      const result: unknown = await response.json();
 
       if (!response.ok) {
-        setError(result.error ?? "We couldn't create your account. Please try again.");
+        const message = result && typeof result === "object" && "error" in result &&
+          typeof result.error === "string"
+          ? result.error
+          : "We couldn't create your account. Please try again.";
+        setError(message);
         return;
       }
 

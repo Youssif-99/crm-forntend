@@ -41,15 +41,21 @@ export default function SignInPage() {
           }),
         },
       );
-      const result = await response.json();
+      const result: unknown = await response.json();
 
       if (!response.ok) {
-        setError(result.error ?? "We couldn't sign you in. Please try again.");
+        const message = result && typeof result === "object" && "error" in result &&
+          typeof result.error === "string"
+          ? result.error
+          : "We couldn't sign you in. Please try again.";
+        setError(message);
         return;
       }
 
       window.dispatchEvent(new Event("businessos:account-authenticated"));
-      router.push(result.onboardingRequired ? "/onboarding" : "/dashboard");
+      const onboardingRequired = result && typeof result === "object" &&
+        "onboardingRequired" in result && result.onboardingRequired === true;
+      router.push(onboardingRequired ? "/onboarding" : "/dashboard");
     } catch {
       setError("We couldn't connect to the server. Please try again.");
     } finally {
