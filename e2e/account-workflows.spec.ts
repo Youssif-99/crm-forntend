@@ -84,6 +84,30 @@ test.describe("account and workspace workflows", () => {
     expect(malformedJson.status()).toBe(400);
   });
 
+  test("creates an account-owned workspace and saves its optional business profile", async () => {
+    const initialResponse = await ownerApi.get("/api/account/workspace");
+    expect(initialResponse.ok()).toBeTruthy();
+    expect((await initialResponse.json()).workspace).toMatchObject({
+      name: `${owner.name}'s workspace`,
+      businessName: null,
+    });
+
+    const businessName = `Workspace ${suffix}`;
+    const updateResponse = await ownerApi.put("/api/account/onboarding", {
+      data: { businessName, industry: "Consulting", country: "US" },
+    });
+    expect(updateResponse.ok()).toBeTruthy();
+
+    const workspaceResponse = await ownerApi.get("/api/account/workspace");
+    expect(workspaceResponse.ok()).toBeTruthy();
+    expect((await workspaceResponse.json()).workspace).toMatchObject({
+      name: businessName,
+      businessName,
+      industry: "Consulting",
+      country: "US",
+    });
+  });
+
   test("prevents a second user from reading another user's customer profile", async () => {
     const created = await ownerApi.post("/api/customers", {
       data: { name: `Private customer ${suffix}`, status: "customer" },
@@ -114,6 +138,10 @@ test.describe("account and workspace workflows", () => {
         },
       });
       expect(login.ok()).toBeTruthy();
+
+      const workspaceResponse = await other.get("/api/account/workspace");
+      expect(workspaceResponse.ok()).toBeTruthy();
+      expect((await workspaceResponse.json()).workspace.name).toBe(`Other user ${otherSuffix}'s workspace`);
 
       const response = await other.get(`/api/customers/${customer.id}/profile`);
       expect(response.status()).toBe(404);
@@ -274,6 +302,7 @@ test.describe("account and workspace workflows", () => {
     await activePage.getByRole("button", { name: "Skip setup" }).click();
     await expect(activePage).toHaveURL(/\/dashboard$/);
     await expect(activePage.getByRole("heading").first()).toBeVisible();
+    await expect(activePage.getByRole("heading", { name: `${account.name}'s workspace` })).toBeVisible();
   });
 
   test("creates a customer and records an interaction in Customer 360", async () => {

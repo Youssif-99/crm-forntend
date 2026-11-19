@@ -8,6 +8,7 @@ import { formatUserDate, normalizeUserPreferences, useUserPreferences, type User
 
 type Profile = { id: string; name: string; username: string; email: string; createdAt: string; lastLoginAt: string | null; avatarUrl: string | null };
 type Onboarding = { currentStep: string; businessName: string | null; industry: string | null; country: string | null; completedAt: string | null };
+type Workspace = { name: string; businessName: string | null; industry: string | null; country: string | null };
 type Section = "profile" | "preferences" | "security" | "onboarding" | "account";
 
 const API = "";
@@ -18,7 +19,7 @@ const sections: { id: Section; title: string; description: string }[] = [
   { id: "profile", title: "Profile", description: "Personal information and avatar" },
   { id: "preferences", title: "Preferences", description: "Language, display, and regional settings" },
   { id: "security", title: "Security", description: "Password and active sessions" },
-  { id: "onboarding", title: "Workspace setup", description: "Review or resume onboarding" },
+  { id: "onboarding", title: "Workspace", description: "Workspace identity and business profile" },
   { id: "account", title: "Account information", description: "Account status and available controls" },
 ];
 const zones = ["UTC", "Africa/Cairo", "Africa/Johannesburg", "America/Chicago", "America/Los_Angeles", "America/New_York", "Asia/Dubai", "Asia/Riyadh", "Asia/Tokyo", "Australia/Sydney", "Europe/London", "Europe/Paris"];
@@ -57,6 +58,7 @@ export default function SettingsPage() {
   const [section, setSection] = useState<Section>("profile");
   const [profile, setProfile] = useState<Profile | null>(null);
   const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [draft, setDraft] = useState<UserPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,10 +77,11 @@ export default function SettingsPage() {
     let active = true;
     async function load() {
       try {
-        const [account, prefs, progress] = await Promise.all([
+        const [account, prefs, progress, workspaceResult] = await Promise.all([
           request<{ profile: Profile }>("/account/profile"),
           request<{ preferences: UserPreferences }>("/account/preferences"),
           request<{ onboarding: Onboarding }>("/account/onboarding"),
+          request<{ workspace: Workspace }>("/account/workspace"),
         ]);
         if (active) {
           setProfile(account.profile);
@@ -86,6 +89,7 @@ export default function SettingsPage() {
           setPreferences(userPreferences);
           setDraft(userPreferences);
           setOnboarding(progress.onboarding);
+          setWorkspace(workspaceResult.workspace);
         }
       } catch (loadError) {
         if ((loadError as { status?: number }).status === 401) router.replace("/authPages/sign-in");
@@ -240,7 +244,7 @@ export default function SettingsPage() {
             <form onSubmit={savePreferences} className="mt-5 space-y-4"><div className="grid gap-4 sm:grid-cols-2"><Field label="Language"><select className={input} value={preferenceDraft.language} onChange={(event) => setDraft({ ...preferenceDraft, language: event.target.value as UserPreferences["language"] })}><option value="en">English</option><option value="ar">Arabic</option></select></Field><Field label="Theme"><select className={input} value={preferenceDraft.theme} onChange={(event) => setDraft({ ...preferenceDraft, theme: event.target.value as UserPreferences["theme"] })}><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></Field><Field label="Preferred currency"><select className={input} value={preferenceDraft.currency} onChange={(event) => setDraft({ ...preferenceDraft, currency: event.target.value as UserPreferences["currency"] })}><option>EGP</option><option>USD</option><option>EUR</option></select></Field><Field label="Date format"><select className={input} value={preferenceDraft.dateFormat} onChange={(event) => setDraft({ ...preferenceDraft, dateFormat: event.target.value as UserPreferences["dateFormat"] })}><option>YYYY-MM-DD</option><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option></select></Field><Field label="Time format"><select className={input} value={preferenceDraft.timeFormat} onChange={(event) => setDraft({ ...preferenceDraft, timeFormat: event.target.value as UserPreferences["timeFormat"] })}><option value="12h">12-hour</option><option value="24h">24-hour</option></select></Field><Field label="Time zone"><select className={input} value={preferenceDraft.timezone} onChange={(event) => setDraft({ ...preferenceDraft, timezone: event.target.value })}>{[...new Set([...zones, preferenceDraft.timezone])].sort().map((zone) => <option key={zone}>{zone}</option>)}</select></Field></div><p className="text-[11px] text-[#8993a3]">Theme and Arabic right-to-left layout are applied across the application. Regional preferences are available to account-aware date and currency displays.</p><div className="flex justify-end"><button className={primary} disabled={saving}>{saving ? "Saving..." : "Save preferences"}</button></div></form>
           </Card>}
           {section === "security" && <div className="space-y-5"><Card><h2 className="text-base font-semibold text-[#35415a]">Change password</h2><p className="mt-1 text-xs text-[#8993a3]">Use at least 12 characters with uppercase, lowercase, and a number.</p><form className="mt-5 space-y-4" onSubmit={savePassword}><Field label="Current password"><input className={input} name="currentPassword" type="password" autoComplete="current-password" required /></Field><Field label="New password"><input className={input} name="newPassword" type="password" autoComplete="new-password" minLength={12} required /></Field><div className="flex justify-end"><button className={primary} disabled={saving}>{saving ? "Updating..." : "Update password"}</button></div></form></Card><Card><h2 className="text-base font-semibold text-[#35415a]">Active sessions</h2><p className="mt-1 text-xs text-[#8993a3]">Sessions are not individually listed. Revoke other sessions to sign out all other devices while keeping this one active.</p><button className={`${button} mt-4`} disabled={saving} onClick={() => void revokeSessions()}>Revoke other sessions</button></Card></div>}
-          {section === "onboarding" && <Card><h2 className="text-base font-semibold text-[#35415a]">Workspace setup</h2><p className="mt-1 text-xs text-[#8993a3]">{onboarding?.completedAt ? `Completed ${dateLabel(onboarding.completedAt, preferences, true)}` : `In progress · ${onboarding?.currentStep ?? "welcome"} step`}</p><dl className="mt-5 grid gap-3 text-xs sm:grid-cols-2"><ReadOnly label="Business name" value={onboarding?.businessName || "Not set"} /><ReadOnly label="Industry" value={onboarding?.industry || "Not set"} /><ReadOnly label="Country" value={onboarding?.country || "Not set"} /></dl><button className={`${primary} mt-5`} disabled={saving} onClick={() => void restartOnboarding()}>{onboarding?.completedAt ? "Review setup" : "Resume setup"}</button></Card>}
+          {section === "onboarding" && <Card><h2 className="text-base font-semibold text-[#35415a]">Your private workspace</h2><p className="mt-1 text-xs text-[#8993a3]">This workspace and its CRM records belong only to your account.</p><dl className="mt-5 grid gap-3 text-xs sm:grid-cols-2"><ReadOnly label="Workspace name" value={workspace?.name} /><ReadOnly label="Business name" value={workspace?.businessName || "Personal workspace"} /><ReadOnly label="Industry" value={workspace?.industry || "Not set"} /><ReadOnly label="Country" value={workspace?.country || "Not set"} /><ReadOnly label="Profile status" value={onboarding?.completedAt ? `Setup completed ${dateLabel(onboarding.completedAt, preferences, true)}` : `Optional setup · ${onboarding?.currentStep ?? "welcome"} step`} /></dl><button className={`${primary} mt-5`} disabled={saving} onClick={() => void restartOnboarding()}>{onboarding?.completedAt ? "Edit workspace profile" : "Set up workspace profile"}</button></Card>}
           {section === "account" && <div className="space-y-5"><Card><h2 className="text-base font-semibold text-[#35415a]">Account information</h2><p className="mt-1 text-xs text-[#8993a3]">Your personal workspace account and its data belong to this account.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><ReadOnly label="Account ID" value={profile?.id} /><ReadOnly label="Created" value={dateLabel(profile?.createdAt, preferences)} /><ReadOnly label="Username" value={profile?.username} /><ReadOnly label="Email" value={profile?.email} /></div></Card><Card><div className="rounded-xl border border-red-200 bg-red-50 p-4 sm:p-5"><p className="text-[10px] font-bold uppercase tracking-[.13em] text-red-700">Danger zone</p><h2 className="mt-2 text-base font-semibold text-red-950">Permanently delete account</h2><p className="mt-2 text-xs leading-5 text-red-900">This permanently deletes your account, customers and CRM history, deals and pipelines, invoices and quotes, expenses and recurring templates, tasks and their activity, appointments and reminders, account settings, and all private uploaded files including receipts and attachments. This cannot be undone.</p><button type="button" className="mt-4 rounded-lg bg-red-700 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-red-800 disabled:opacity-50" disabled={deletingAccount} onClick={() => { setDeletionPassword(""); setDeletionConfirmation(""); setError(""); setDeletionDialogOpen(true); }}>Delete account permanently</button></div></Card></div>}
         </div>
       </div>

@@ -12,6 +12,7 @@ type DashboardUser = {
   email: string;
 };
 
+type DashboardWorkspace = { name: string; businessName: string | null; industry: string | null; country: string | null };
 type DashboardCustomer = { id: string; name: string; company?: string | null; status: string };
 type CustomerList = { customers?: DashboardCustomer[] };
 type InvoiceSummary = { currency: "EGP" | "USD" | "EUR"; paidThisMonth: string; outstanding: string };
@@ -112,6 +113,7 @@ function groupedCurrencyAmounts(rows: { currency: "EGP" | "USD" | "EUR"; amount?
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<DashboardUser | null>(null);
+  const [workspace, setWorkspace] = useState<DashboardWorkspace | null>(null);
   const [customerCount, setCustomerCount] = useState<number | null>(null);
   const [recentCustomers, setRecentCustomers] = useState<DashboardCustomer[]>([]);
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary[]>([]);
@@ -198,6 +200,21 @@ export default function DashboardPage() {
         const result: { user?: DashboardUser } = await response.json();
         if (!result.user?.name || !result.user.email) {
           throw new Error("Your account details couldn't be loaded. Please sign in again.");
+        }
+        const workspaceResponse = await fetch(
+          `/api/account/workspace`,
+          { credentials: "include", signal: controller.signal },
+        );
+        if (workspaceResponse.status === 401) {
+          router.replace("/authPages/sign-in");
+          return;
+        }
+        if (!workspaceResponse.ok) {
+          throw new Error("We couldn't load your workspace profile. Please try again.");
+        }
+        const workspaceResult: { workspace?: DashboardWorkspace } = await workspaceResponse.json();
+        if (!workspaceResult.workspace?.name) {
+          throw new Error("Your workspace profile couldn't be loaded. Please try again.");
         }
         const customersResponse = await fetch(
           `/api/customers`,
@@ -310,7 +327,7 @@ export default function DashboardPage() {
           setExpenseError(error instanceof Error ? error.message : "Expense summary is unavailable.");
         }
         try {
-          const pendingUrl = new URL(`${apiUrl}/api/expenses`);
+          const pendingUrl = new URL("/api/expenses", window.location.origin);
           pendingUrl.searchParams.set("status", "pending");
           pendingUrl.searchParams.set("page", "1");
           pendingUrl.searchParams.set("pageSize", "100");
@@ -342,6 +359,7 @@ export default function DashboardPage() {
           setExpenseError((current) => current || (error instanceof Error ? error.message : "Overdue expense information is unavailable."));
         }
         setUser(result.user);
+        setWorkspace(workspaceResult.workspace);
         setCustomerCount(customerResult.customers.length);
         setRecentCustomers(customerResult.customers.slice(0, 5));
         setInvoiceSummary(invoiceResult.summary);
@@ -402,7 +420,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (loadError || !user) {
+  if (loadError || !user || !workspace) {
     return (
       <main className="crm-workspace flex min-h-screen items-center justify-center bg-[#f7f8fa] px-5">
         <section className="w-full max-w-md rounded-2xl border border-[#e8ebf0] bg-white p-8 text-center shadow-sm">
@@ -446,8 +464,9 @@ export default function DashboardPage() {
 
           <div className="mt-auto">
             <div className="mb-4 rounded-xl border border-[#edf0f4] bg-[#fbfcfd] p-3.5">
-              <p className="text-xs font-semibold text-[#46536a]">Your workspace is ready</p>
-              <p className="mt-1 text-[11px] leading-5 text-[#8a95a6]">Your account is set up. Start adding your business records as each section becomes available.</p>
+              <p className="truncate text-xs font-semibold text-[#46536a]">{workspace.name}</p>
+              <p className="mt-1 text-[11px] leading-5 text-[#8a95a6]">{workspace.industry || "Private to your account"} · Start adding your business records.</p>
+              <Link href="/settings" className="mt-2 inline-flex text-[10px] font-semibold text-[#6478ce] hover:text-[#4057b1]">Manage workspace</Link>
             </div>
             <button onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} className="flex w-full items-center gap-3 rounded-xl border-t border-[#eef0f4] px-2 pt-4 text-left">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e8ebf8] text-xs font-semibold text-[#596cb9]">{initials}</span>
@@ -469,7 +488,7 @@ export default function DashboardPage() {
           <header className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-[#e9ecf1] bg-white/95 px-4 backdrop-blur sm:px-7 lg:px-9">
             <div className="flex items-center gap-3">
               <span className="lg:hidden"><BrandMark small /></span>
-              <span className="hidden text-[13px] font-medium text-[#99a2b0] sm:inline">Workspace</span>
+              <span className="hidden max-w-[220px] truncate text-[13px] font-medium text-[#99a2b0] sm:inline">{workspace.name}</span>
               <span className="hidden text-[#c0c6d0] sm:inline">/</span>
               <span className="text-[13px] font-semibold text-[#46536a]">Dashboard</span>
             </div>
@@ -509,15 +528,15 @@ export default function DashboardPage() {
             )}
             <section className="workspace-hero mb-7 flex flex-col justify-between gap-5 rounded-2xl border border-[#e8ebf4] bg-white p-5 sm:flex-row sm:items-center sm:p-7">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#929bab]">YOUR BUSINESS AT A GLANCE</p>
+                <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[#929bab]">YOUR PRIVATE WORKSPACE</p>
                 <h1 className="mt-2 text-[25px] font-semibold tracking-[-0.055em] text-[#202d45] sm:text-[30px]">
-                  Good morning, {firstName} <span className="text-sky-500" aria-hidden="true">✦</span>
+                  {workspace.name} <span className="text-sky-500" aria-hidden="true">✦</span>
                 </h1>
-                <p className="mt-1.5 text-[13px] text-[#8490a2]">Your business overview will come to life as you add your records.</p>
+                <p className="mt-1.5 text-[13px] text-[#8490a2]">Good morning, {firstName}. {workspace.industry ? `${workspace.industry}${workspace.country ? ` · ${workspace.country}` : ""} · ` : ""}Your records are private to your account.</p>
               </div>
               <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/70 bg-white/70 px-3 py-2 text-[11px] font-semibold text-[#527c69] shadow-sm backdrop-blur">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.14)]" />
-                Account connected
+                Personal workspace
               </span>
             </section>
 
@@ -541,7 +560,7 @@ export default function DashboardPage() {
                   <p className="mt-1 text-[11px] text-[#98a1af]">A clear view of your business begins with your first records.</p>
                 </div>
                 <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#f4f5f8] px-2.5 py-1 text-[10px] font-medium text-[#7b8698]">
-                  <Icon name="refresh" className="h-3.5 w-3.5" /> Setup in progress
+                  <Icon name="refresh" className="h-3.5 w-3.5" /> {workspace.businessName ? "Business profile set" : "Personal workspace"}
                 </span>
               </div>
               <div className="grid md:grid-cols-3">
